@@ -16,6 +16,13 @@ print(os.getcwd())
 with open("./stocklist.csv", mode='r') as infile:
     reader = csv.reader(infile)
     mydict = {rows[0]:rows[1] for rows in reader}
+
+#check if excel exist
+try:
+    with open("./stockdata.xlsx") as f:
+        print("Existing file will be used")
+except:
+        print("New file will be created")
     
 #++++++++++++++++++++++++++++++++++++++++++++ functions +++++++++++++++++++++++++++++++++++++++++++++
 #function for table creation
@@ -70,7 +77,7 @@ def delete_data(conn,name):
     cur.execute(sql,(name))
     conn.commit()
 
-def parse(ticker):
+def parse(ticker, stk_name):
     summary_data = OrderedDict()
     url = "http://finance.yahoo.com/quote/%s?p=%s" % (ticker, ticker)
     response = requests.get(url, timeout=30)
@@ -78,6 +85,9 @@ def parse(ticker):
     parser = html.fromstring(response.text)
     summary_table = parser.xpath('//div[contains(@data-test,"summary-table")]//tr')
     currentPrice = parser.xpath('//span[@data-reactid="32"]//text()')
+    
+    summary_data.update({'timestamp': datetime.datetime.now()})
+    summary_data.update({'name': stk_name})
     try:
         for table_data in summary_table:
             raw_table_key = table_data.xpath(
@@ -129,13 +139,20 @@ if conn is not None:
 else:
     print("Error! cannot create the database connection.")
 
-for i in mydict.items():
-    scraped_data = parse(i[1])
-    addon_list = [datetime.datetime.now(),i[0]]
-    data = addon_list + list(scraped_data.values())
-    entry = add_data(conn, data)
+# This part is for saving to excel.
+try:
+    df = pd.read_excel("./stockdata.xlsx")
+except:
+    df = pd.DataFrame()
 
-x = query(conn,'open,volume','stock')
+for i in mydict.items():
+    scraped_data = parse(i[1],i[0])
+    data = list(scraped_data.values())
+    entry = add_data(conn, data)
+    df = df.append(scraped_data, ignore_index= True)
+
+df.to_excel("df.xlsx")
+#x = query(conn,'open,volume','stock')
 
 #close db connection
 #conn.close()
