@@ -19,7 +19,7 @@ with open("./stocklist.csv", mode='r') as infile:
 
 #check if excel exist
 try:
-    with open("./stockdata.xlsx") as f:
+    with open("./df.xlsx") as f:
         print("Existing file will be used")
 except:
         print("New file will be created")
