@@ -141,7 +141,7 @@ else:
 
 # This part is for saving to excel.
 try:
-    df = pd.read_excel("./stockdata.xlsx")
+    df = pd.read_excel("./df.xlsx")
 except:
     df = pd.DataFrame()
 
@@ -151,7 +151,7 @@ for i in mydict.items():
     entry = add_data(conn, data)
     df = df.append(scraped_data, ignore_index= True)
 
-df.to_excel("df.xlsx")
+df.to_excel("df.xlsx", index = False)
 #x = query(conn,'open,volume','stock')
 
 #close db connection
